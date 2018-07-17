@@ -29,14 +29,12 @@ var (
 
 func init() {
 	//for turn on migration & seeder change to true
-	flag.BoolVar(&runMigration, "migrate", false, "run db migration before starting the server")
+	flag.BoolVar(&runMigration, "migrate", true, "run db migration before starting the server")
 	flag.BoolVar(&runSeeder, "seed", false, "run db seeder after db migration")
 	flag.Parse()
 }
 
 func setupRouter() *gin.Engine {
-	// Disable Console Color
-	// gin.DisableConsoleColor()
 	r := gin.Default()
 
 	// Ping test
@@ -45,6 +43,7 @@ func setupRouter() *gin.Engine {
 	})
 
 	v1 := r.Group("/api/v1")
+	// v1.Use(db)
 	v1.GET("/products", ctrl.GetProduct)
 	v1.GET("/product/:sku", ctrl.GetProductBySku)
 	v1.POST("/product", ctrl.CreateProduct)

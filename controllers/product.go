@@ -14,18 +14,16 @@ var (
 	dbPath = "file:salestock.db?cache=shared&mode=rwc"
 )
 
-type (
-	product struct {
-		SKU       string `json:"sku"`
-		Name      string `json:"name"`
-		Stock     int    `json:"stock"`
-		CreatedAt time.Time
-	}
-)
+type product struct {
+	Name       string `json:"name"`
+	Stock      int    `json:"stock"`
+	SizeOfItem string `json:"sizeOfItem"`
+	Color      string `json:"color"`
+	CreatedAt  time.Time
+}
 
 //Get All data Product
 func GetProduct(c *gin.Context) {
-
 	db, err := gorm.Open("sqlite3", dbPath)
 	if err != nil {
 		panic("failed to connect database")
@@ -75,15 +73,16 @@ func CreateProduct(c *gin.Context) {
 	var product m.Product
 	if c.ShouldBindWith(&req, binding.JSON) == nil {
 
-		if err := db.Where("sku = ?", req.SKU).First(&product).Error; err == nil {
+		if err := db.Where("name = ?", req.Name).First(&product).Error; err == nil {
 			c.JSON(http.StatusOK, gin.H{"status": http.StatusNotFound, "message": "Product already in database!"})
 			return
 		}
 
 		store := m.Product{
-			SKU:   product.SKU,
-			Name:  product.Name,
-			Stock: product.Stock,
+			SizeOfItem: req.SizeOfItem,
+			Name:       req.Name,
+			Stock:      req.Stock,
+			Color:      req.Color,
 		}
 
 		now := time.Now()
@@ -92,9 +91,9 @@ func CreateProduct(c *gin.Context) {
 		db.Save(&store)
 
 		c.JSON(http.StatusCreated, gin.H{
-			"status":  http.StatusCreated,
-			"message": "Product created successfully!",
-			"data":    store.Name,
+			"status":      http.StatusCreated,
+			"message":     "Product created successfully!",
+			"product-sku": store.SKU,
 		})
 
 	}
