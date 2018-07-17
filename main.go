@@ -10,6 +10,7 @@ import (
 	"os"
 	m "ss-api-inventory/models"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -70,11 +71,17 @@ func runDBMigration(db *gorm.DB) {
 
 //Feature Task : Optional: Import data from CSV/spreadsheet (data migration)
 func runDBSeeder(db *gorm.DB) {
+	tx := db.Begin()
+
 	product_file, _ := os.Open("jumlah_barang.csv")
-	// product_in, _ := os.Open("catatan_barang_masuk.csv")
+	product_in, _ := os.Open("catatan_barang_masuk.csv")
+	product_out, _ := os.Open("catatan_barang_keluar.csv")
+
 	//seeder for table product
 	reader_product := csv.NewReader(bufio.NewReader(product_file))
+
 	for {
+		// fmt.Println(header)
 		line, error := reader_product.Read()
 		if error == io.EOF {
 			break
@@ -82,8 +89,9 @@ func runDBSeeder(db *gorm.DB) {
 			log.Fatal(error)
 		}
 		total, _ := strconv.Atoi(line[2])
+		//delete header
 		if line[0] != "SKU" {
-			db.Create(&m.Product{
+			tx.Create(&m.Product{
 				SKU:   line[0],
 				Name:  line[1],
 				Stock: total,
@@ -91,25 +99,73 @@ func runDBSeeder(db *gorm.DB) {
 		}
 	}
 
-	// reader_product_in := csv.NewReader(bufio.NewReader(product_in))
-	// for {
-	// 	line, error := reader_product_in.Read()
-	// 	if error == io.EOF {
-	// 		break
-	// 	} else if error != nil {
-	// 		log.Fatal(error)
-	// 	}
+	// seeder from csv for table product_in
+	reader_product_in := csv.NewReader(bufio.NewReader(product_in))
+	for {
+		line, error := reader_product_in.Read()
+		if error == io.EOF {
+			break
+		} else if error != nil {
+			log.Fatal(error)
+		}
 
-	// 	if line[0] != "SKU" {
-	// 		db.Create(&m.Product{
-	// 			SKU:   line[0],
-	// 			Name:  line[1],
-	// 			Stock: total,
-	// 		})
-	// 	}
-	// }
+		if line[1] != "SKU" {
+			order_amount, _ := strconv.Atoi(line[3])
+			total_received, _ := strconv.Atoi(line[4])
+			purchase_price := stringToAmount(line[5])
+			total_price := stringToAmount(line[6])
+			var status bool
+
+			if order_amount > total_received {
+				status = false
+			} else {
+				status = true
+			}
+
+			tx.Create(&m.ProductIn{
+				Time:          line[0],
+				SKU:           line[1],
+				Name:          line[2],
+				OrderAmount:   order_amount,
+				TotalReceived: total_received,
+				PurchasePrice: purchase_price,
+				TotalPrice:    total_price,
+				ReceiptNumber: line[7],
+				Status:        status,
+				Note:          line[8],
+			})
+		}
+	}
 
 	//seeder for table productOut
+	reader_product_out := csv.NewReader(bufio.NewReader(product_out))
+
+	for {
+		line, error := reader_product_out.Read()
+		if error == io.EOF {
+			break
+		} else if error != nil {
+			log.Fatal(error)
+		}
+
+		if line[1] != "SKU" {
+			number_of_item, _ := strconv.Atoi(line[3])
+			total_out := stringToAmount(line[4])
+			total_price := stringToAmount(line[5])
+
+			tx.Create(&m.ProductOut{
+				Time:         line[0],
+				SKU:          line[1],
+				Name:         line[2],
+				NumberOfItem: number_of_item,
+				SellingPrice: total_out,
+				TotalPrice:   total_price,
+				Note:         line[6],
+			})
+		}
+	}
+
+	tx.Commit()
 }
 
 func getDatabaseHandle() (*gorm.DB, error) {
@@ -123,4 +179,14 @@ func getDatabaseHandle() (*gorm.DB, error) {
 		return nil, err
 	}
 	return database, nil
+}
+
+func stringToAmount(str string) int {
+	charIndex := str[0:3]
+	slice := str[len(charIndex)-1:]
+	replaceComa := strings.Replace(slice, ",", "", -1)
+
+	parseInt, _ := strconv.Atoi(replaceComa)
+
+	return parseInt
 }

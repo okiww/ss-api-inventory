@@ -11,9 +11,11 @@ type ProductIn struct {
 	SKU           string  `json:"sku";gorm:"type:varchar(100);"`
 	Name          string  `json:"name"`
 	OrderAmount   int     `json:"order_amount"`
+	TotalReceived int     `json:"total_received"`
 	PurchasePrice int     `json:"purchase_price"`
 	TotalPrice    int     `json:"total_price"`
 	ReceiptNumber string  `json:"receipt_number";gorm:"type:varchar(100);`
 	Status        bool    `json:"status";gorm:"default:0"`
 	Note          string  `json:"note";gorm:"type:varchar(255);`
+	Time          string
 }
