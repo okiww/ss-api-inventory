@@ -45,8 +45,10 @@ func setupRouter() *gin.Engine {
 	})
 
 	v1 := r.Group("/api/v1")
-	v1.GET("/product", ctrl.GetProduct)
+	v1.GET("/products", ctrl.GetProduct)
+	v1.GET("/product/:sku", ctrl.GetProductBySku)
 	v1.POST("/product", ctrl.CreateProduct)
+	v1.DELETE("/product/:sku", ctrl.DeleteProduct)
 
 	return r
 }

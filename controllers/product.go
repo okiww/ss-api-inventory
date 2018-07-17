@@ -23,6 +23,7 @@ type (
 	}
 )
 
+//Get All data Product
 func GetProduct(c *gin.Context) {
 
 	db, err := gorm.Open("sqlite3", dbPath)
@@ -36,18 +37,33 @@ func GetProduct(c *gin.Context) {
 	db.Find(&products)
 
 	if len(products) <= 0 {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No users found!"})
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No products found!"})
 		return
 	}
 
-	// for i, _ := range products {
-	// 	db.Model(users[i]).Related(&users[i].Role)
-	// }
-
-	//transforms the todos for building a good response
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": products})
 }
 
+//GET DATA PRODUCT BY ID
+func GetProductBySku(c *gin.Context) {
+	db, err := gorm.Open("sqlite3", dbPath)
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
+
+	var product m.Product
+	sku := c.Param("sku")
+
+	if err := db.Where("sku LIKE ?", sku).Find(&product).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No product found!"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": product})
+}
+
+//INSERT DATA PRODUCT
 func CreateProduct(c *gin.Context) {
 	db, err := gorm.Open("sqlite3", dbPath)
 	if err != nil {
@@ -77,9 +93,29 @@ func CreateProduct(c *gin.Context) {
 
 		c.JSON(http.StatusCreated, gin.H{
 			"status":  http.StatusCreated,
-			"message": "User created successfully!",
+			"message": "Product created successfully!",
 			"data":    store.Name,
 		})
 
 	}
+}
+
+func DeleteProduct(c *gin.Context) {
+
+	db, err := gorm.Open("sqlite3", dbPath)
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
+
+	var product m.Product
+	sku := c.Param("sku")
+
+	if err := db.Where("sku LIKE ?", sku).Find(&product).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No product found!"})
+		return
+	}
+
+	db.Delete(&product)
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Product deleted successfully!"})
 }
