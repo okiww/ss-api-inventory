@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	ctrl "ss-api-inventory/controllers"
 	m "ss-api-inventory/models"
 	"strconv"
 	"strings"
@@ -27,8 +28,9 @@ var (
 )
 
 func init() {
-	flag.BoolVar(&runMigration, "migrate", true, "run db migration before starting the server")
-	flag.BoolVar(&runSeeder, "seed", true, "run db seeder after db migration")
+	//for turn on migration & seeder change to true
+	flag.BoolVar(&runMigration, "migrate", false, "run db migration before starting the server")
+	flag.BoolVar(&runSeeder, "seed", false, "run db seeder after db migration")
 	flag.Parse()
 }
 
@@ -41,6 +43,10 @@ func setupRouter() *gin.Engine {
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(200, "pong")
 	})
+
+	v1 := r.Group("/api/v1")
+	v1.GET("/product", ctrl.GetProduct)
+	v1.POST("/product", ctrl.CreateProduct)
 
 	return r
 }
@@ -91,7 +97,7 @@ func runDBSeeder(db *gorm.DB) {
 		total, _ := strconv.Atoi(line[2])
 		//delete header
 		if line[0] != "SKU" {
-			tx.Create(&m.Product{
+			tx.FirstOrCreate(&m.Product{
 				SKU:   line[0],
 				Name:  line[1],
 				Stock: total,
@@ -122,7 +128,7 @@ func runDBSeeder(db *gorm.DB) {
 				status = true
 			}
 
-			tx.Create(&m.ProductIn{
+			tx.FirstOrCreate(&m.ProductIn{
 				Time:          line[0],
 				SKU:           line[1],
 				Name:          line[2],
@@ -153,7 +159,7 @@ func runDBSeeder(db *gorm.DB) {
 			total_out := stringToAmount(line[4])
 			total_price := stringToAmount(line[5])
 
-			tx.Create(&m.ProductOut{
+			tx.FirstOrCreate(&m.ProductOut{
 				Time:         line[0],
 				SKU:          line[1],
 				Name:         line[2],
