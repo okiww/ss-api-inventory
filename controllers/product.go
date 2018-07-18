@@ -3,8 +3,10 @@ package controllers
 import (
 	"net/http"
 	m "ss-api-inventory/models"
+	"strconv"
 	"time"
 
+	"github.com/biezhi/gorm-paginator/pagination"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/jinzhu/gorm"
@@ -39,7 +41,19 @@ func GetProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": products})
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+
+	paginator := pagination.Pagging(&pagination.Param{
+		DB:      db,
+		Page:    page,
+		Limit:   limit,
+		OrderBy: []string{"id desc"},
+		ShowSQL: true,
+	}, &products)
+
+	c.JSON(http.StatusOK, paginator)
+
 }
 
 //GET DATA PRODUCT BY ID

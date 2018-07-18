@@ -43,11 +43,16 @@ func setupRouter() *gin.Engine {
 	})
 
 	v1 := r.Group("/api/v1")
-	// v1.Use(db)
+
+	//api product
 	v1.GET("/products", ctrl.GetProduct)
 	v1.GET("/product/:sku", ctrl.GetProductBySku)
 	v1.POST("/product", ctrl.CreateProduct)
 	v1.DELETE("/product/:sku", ctrl.DeleteProduct)
+
+	//api productIN
+	v1.GET("/products/in", ctrl.GetProductIn)
+	v1.POST("/products/in", ctrl.StoreNewProduct)
 
 	return r
 }
