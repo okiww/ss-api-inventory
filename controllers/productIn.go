@@ -25,6 +25,11 @@ type newProduct struct {
 	Color         string `json:"color"`
 }
 
+type ProductInStruct struct {
+	TotalReceived int  `json:"total_received"`
+	Status        bool `json:"status"`
+}
+
 func GetProductIn(c *gin.Context) {
 	db, err := gorm.Open("sqlite3", dbPath)
 	if err != nil {
@@ -57,6 +62,7 @@ func GetProductIn(c *gin.Context) {
 }
 
 func StoreNewProduct(c *gin.Context) {
+
 	db, err := gorm.Open("sqlite3", dbPath)
 	if err != nil {
 		panic("failed to connect database")
@@ -65,37 +71,74 @@ func StoreNewProduct(c *gin.Context) {
 
 	var req newProduct
 	var product m.Product
+	var productIn m.ProductIn
 
 	if c.ShouldBindWith(&req, binding.JSON) == nil {
 		sku := ""
 
 		if err := db.Where("name = ?", req.Name).First(&product).Error; err == nil {
 			sku = product.SKU
+
+			if err := db.Where("sku = ? AND status = ?", sku, 0).Find(&productIn).Error; err == nil {
+				db.Model(&productIn).Updates(ProductInStruct{TotalReceived: productIn.TotalReceived + req.TotalReceived, Status: true})
+
+				c.JSON(http.StatusCreated, gin.H{
+					"status":      http.StatusCreated,
+					"message":     "Product update successfully!",
+					"product-sku": productIn.SKU,
+				})
+			} else {
+				store := m.ProductIn{
+					Name:          req.Name,
+					OrderAmount:   req.OrderAmount,
+					TotalReceived: req.TotalReceived,
+					PurchasePrice: req.PurchasePrice,
+					TotalPrice:    req.PurchasePrice,
+					ReceiptNumber: req.ReceiptNumber,
+					Time:          req.Time,
+					SizeOfItem:    req.SizeOfItem,
+					Color:         req.Color,
+					SKU:           sku,
+				}
+
+				now := time.Now()
+				store.CreatedAt = now
+
+				db.Create(&store)
+
+				c.JSON(http.StatusCreated, gin.H{
+					"status":  http.StatusCreated,
+					"message": "Product created successfully!",
+				})
+
+			}
 		}
 
-		store := m.ProductIn{
-			Name:          req.Name,
-			OrderAmount:   req.OrderAmount,
-			TotalReceived: req.TotalReceived,
-			PurchasePrice: req.PurchasePrice,
-			TotalPrice:    req.PurchasePrice,
-			ReceiptNumber: req.ReceiptNumber,
-			Note:          req.Note,
-			Time:          req.Time,
-			SizeOfItem:    req.SizeOfItem,
-			Color:         req.Color,
-			SKU:           sku,
+		if err := db.Where("name = ?", req.Name).First(&product).Error; err != nil {
+
+			store := m.ProductIn{
+				Name:          req.Name,
+				OrderAmount:   req.OrderAmount,
+				TotalReceived: req.TotalReceived,
+				PurchasePrice: req.PurchasePrice,
+				TotalPrice:    req.PurchasePrice,
+				ReceiptNumber: req.ReceiptNumber,
+				Time:          req.Time,
+				SizeOfItem:    req.SizeOfItem,
+				Color:         req.Color,
+				SKU:           sku,
+			}
+
+			now := time.Now()
+			store.CreatedAt = now
+
+			db.Create(&store)
+
+			c.JSON(http.StatusCreated, gin.H{
+				"status":  http.StatusCreated,
+				"message": "Product created successfully!",
+			})
+
 		}
-
-		now := time.Now()
-		store.CreatedAt = now
-
-		db.Save(&store)
-
-		c.JSON(http.StatusCreated, gin.H{
-			"status":      http.StatusCreated,
-			"message":     "Product created successfully!",
-			"product-sku": store.SKU,
-		})
 	}
 }

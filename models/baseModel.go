@@ -2,6 +2,10 @@ package models
 
 import "strings"
 
+var (
+	dbPath = "file:salestock.db?cache=shared&mode=rwc"
+)
+
 //acronym color example color White convert to WH
 func AcronymColorProduct(text string) string {
 	words := strings.Split(text, " ")

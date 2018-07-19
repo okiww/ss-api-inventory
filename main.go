@@ -47,7 +47,6 @@ func setupRouter() *gin.Engine {
 	//api product
 	v1.GET("/products", ctrl.GetProduct)
 	v1.GET("/product/:sku", ctrl.GetProductBySku)
-	v1.POST("/product", ctrl.CreateProduct)
 	v1.DELETE("/product/:sku", ctrl.DeleteProduct)
 
 	//api productIN
@@ -103,7 +102,7 @@ func runDBSeeder(db *gorm.DB) {
 		total, _ := strconv.Atoi(line[2])
 		//delete header
 		if line[0] != "SKU" {
-			tx.FirstOrCreate(&m.Product{
+			tx.Create(&m.Product{
 				SKU:   line[0],
 				Name:  line[1],
 				Stock: total,
@@ -126,15 +125,14 @@ func runDBSeeder(db *gorm.DB) {
 			total_received, _ := strconv.Atoi(line[4])
 			purchase_price := stringToAmount(line[5])
 			total_price := stringToAmount(line[6])
-			var status bool
 
-			if order_amount > total_received {
-				status = false
-			} else {
-				status = true
-			}
+			split1 := strings.Split(line[2], "(")
+			split2 := strings.Split(split1[1], ",")
+			size := split2[0]
+			split_color := strings.Split(split2[1], ")")
+			color := split_color[0]
 
-			tx.FirstOrCreate(&m.ProductIn{
+			tx.Create(&m.ProductIn{
 				Time:          line[0],
 				SKU:           line[1],
 				Name:          line[2],
@@ -143,8 +141,9 @@ func runDBSeeder(db *gorm.DB) {
 				PurchasePrice: purchase_price,
 				TotalPrice:    total_price,
 				ReceiptNumber: line[7],
-				Status:        status,
 				Note:          line[8],
+				SizeOfItem:    size,
+				Color:         color,
 			})
 		}
 	}
@@ -165,7 +164,7 @@ func runDBSeeder(db *gorm.DB) {
 			total_out := stringToAmount(line[4])
 			total_price := stringToAmount(line[5])
 
-			tx.FirstOrCreate(&m.ProductOut{
+			tx.Create(&m.ProductOut{
 				Time:         line[0],
 				SKU:          line[1],
 				Name:         line[2],
