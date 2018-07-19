@@ -35,11 +35,24 @@ import "net/http"
 ```sh
 $ cd $GOPATH/src/
 ```
-2. Clone Repository & Run
+2. Clone repository & run - will be run at :8080
 ```sh
 $ go run main.go
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /ping                     --> main.setupRouter.func1 (3 handlers)
+[GIN-debug] GET    /catatan-barang-masuk     --> ss-api-inventory/controllers.CSVCatatanPenjualan (3 handlers)
+[GIN-debug] GET    /laporan-nilai-barang     --> ss-api-inventory/controllers.CSVLaporanNilaiBarang (3 handlers)
+[GIN-debug] GET    /api/v1/products          --> ss-api-inventory/controllers.GetProduct (3 handlers)
+[GIN-debug] GET    /api/v1/product/:sku      --> ss-api-inventory/controllers.GetProductBySku (3 handlers)
+[GIN-debug] DELETE /api/v1/product/:sku      --> ss-api-inventory/controllers.DeleteProduct (3 handlers)
+[GIN-debug] GET    /api/v1/products/in       --> ss-api-inventory/controllers.GetProductIn (3 handlers)
+[GIN-debug] POST   /api/v1/products/in       --> ss-api-inventory/controllers.StoreNewProduct (3 handlers)
+[GIN-debug] Listening and serving HTTP on :8080
 ```
-and the project will be start in localhost:8080
 
 3. Set to TRUE/FALSE for run migration & seeder it will be automatically when run the program
 ```go
