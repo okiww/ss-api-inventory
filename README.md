@@ -38,8 +38,9 @@ $ cd $GOPATH/src/
 2. Clone Repository & Run
 ```sh
 $ go run main.go
-and the project will be start in localhost:8080
 ```
+and the project will be start in localhost:8080
+
 3. Set to TRUE/FALSE for run migration & seeder it will be automatically when run the program
 ```go
 func init() {
