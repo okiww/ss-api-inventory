@@ -42,6 +42,9 @@ func setupRouter() *gin.Engine {
 		c.String(200, "pong")
 	})
 
+	r.GET("/catatan-barang-masuk", ctrl.CSVCatatanPenjualan)
+	r.GET("/laporan-nilai-barang", ctrl.CSVLaporanNilaiBarang)
+
 	v1 := r.Group("/api/v1")
 
 	//api product
