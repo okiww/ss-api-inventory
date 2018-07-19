@@ -240,6 +240,7 @@ func CSVLaporanNilaiBarang(c *gin.Context) {
 	var date_print []string
 	var header []string
 	var total_sku []string
+	var jumlah_total []string
 
 	date_print = append(date_print, "Tanggal Cetak")
 	date_print = append(date_print, fmt.Sprintf(t.Format("2006-01-02 15:04:05")))
@@ -255,8 +256,8 @@ func CSVLaporanNilaiBarang(c *gin.Context) {
 		log.Fatalln("error writing record to csv:", err)
 	}
 
-	jumlah_total = append(total_sku, "Jumlah Total Barang")
-	total_sku = append(total_sku, strconv.Itoa(len(product)))
+	jumlah_total = append(jumlah_total, "Jumlah Total Barang")
+	jumlah_total = append(jumlah_total, strconv.Itoa(total))
 	if err := w.Write(total_sku); err != nil {
 		log.Fatalln("error writing record to csv:", err)
 	}
