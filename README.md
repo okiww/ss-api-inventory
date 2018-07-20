@@ -64,7 +64,25 @@ func init() {
 }
 ```
 
-4. Generate report
+4. Database handler
+```go
+var dbPath = "file:salestock.db?cache=shared&mode=rwc"
+
+func getDatabaseHandle() (*gorm.DB, error) {
+	database, err := gorm.Open("sqlite3", dbPath)
+	if err != nil {
+		fmt.Println("Failed to create the handle")
+		return nil, err
+	}
+	if err2 := database.DB().Ping(); err2 != nil {
+		fmt.Println("Failed to keep connection alive")
+		return nil, err
+	}
+	return database, nil
+}
+```
+
+5. Generate report
 Open browser and go to localhost:8080
 ```sh
 http://localhost:8080/catatan-barang-masuk
