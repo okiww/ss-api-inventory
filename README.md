@@ -64,6 +64,13 @@ func init() {
 }
 ```
 
+4. Generate report
+Open browser and go to localhost:8080
+```sh
+http://localhost:8080/catatan-barang-masuk
+http://localhost:8080/laporan-nilai-barang               
+```
+
 ## API
 
 List of API
